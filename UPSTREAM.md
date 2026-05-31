@@ -6,7 +6,7 @@ https://github.com/hugohe3/ppt-master/tree/main/skills
 
 Last synced upstream commit:
 
-`b824a70d8db5cde29860f9db6f54156f2157c4a0`
+`45b6eab96f0ec82d0546b9ccb1454992aea3252e`
 
 Source path:
 

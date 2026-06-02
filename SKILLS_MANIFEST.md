@@ -1,8 +1,8 @@
 # Skills manifest
 
-Synced from: https://github.com/hugohe3/ppt-master/tree/232415dbacc1b3d1a1070e7aa5233609f9236aa3/skills
+Synced from: https://github.com/hugohe3/ppt-master/tree/db8181ad36752bc794f444d82889cf6521630f55/skills
 
-Upstream commit: `232415dbacc1b3d1a1070e7aa5233609f9236aa3`
+Upstream commit: `db8181ad36752bc794f444d82889cf6521630f55`
 
 Detected skill directories:
 

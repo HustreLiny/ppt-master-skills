@@ -1,9 +1,9 @@
 # Skills manifest
 
-Synced from: https://github.com/hugohe3/ppt-master/tree/db8181ad36752bc794f444d82889cf6521630f55/skills
+Synced from upstream release: `v2.9.0`
 
-Upstream commit: `db8181ad36752bc794f444d82889cf6521630f55`
+Upstream commit: `021d734b17d262bc8dc726dd96b89f4dcc12c454`
 
 Detected skill directories:
 
-- `./ppt-master`
+- `ppt-master`

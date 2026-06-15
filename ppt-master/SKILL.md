@@ -78,6 +78,7 @@ For complete tool documentation, see `${SKILL_DIR}/scripts/README.md`.
 | Workflow | Path | Purpose |
 |----------|------|---------|
 | `topic-research` | `workflows/topic-research.md` | Pre-pipeline — gather web sources when the user supplies only a topic with no source files |
+| `template-fill` | `workflows/template-fill-pptx.md` | Give a native PPTX template deck plus source material; select fitting pages (a page may be reused for several output slides) and fill text back without SVG conversion |
 | `create-template` | `workflows/create-template.md` | Standalone layout template creation workflow |
 | `create-brand` | `workflows/create-brand.md` | Standalone brand-only template creation (identity preset; no SVG page roster) |
 | `resume-execute` | `workflows/resume-execute.md` | Phase B entry — resume execution in a fresh chat after Phase A (Step 1–5) completed in another session (split mode) |
@@ -297,6 +298,8 @@ Read references/strategist.md
 
 This line is required output every run — the user must always see the mode choice exists. Whether to act on it is the user's call.
 
+**Mandatory — spec-refinement note** (not a ninth confirmation): after the split-mode line, you MUST append one short opt-in line (rendered in the user's language, prefixed with 💡) telling the user they may **refine the spec first** — Strategist will produce the full design spec, then stop for review/revision of any part of it before any generation, via the [refine-spec](workflows/refine-spec.md) workflow. Default is OFF: no request → the spec is written in one go and the pipeline auto-proceeds as usual. Only when the user explicitly asks (e.g. "refine the spec first") does the [refine-spec](workflows/refine-spec.md) workflow take over after the Eight Confirmations. This line, like the split-mode line, is required output every run — the user must see the choice exists; whether to act on it is theirs.
+
 **Formula rendering policy lives inside item 7 (Typography plan)**:
 
 | Policy | Behavior |
@@ -333,6 +336,7 @@ python3 ${SKILL_DIR}/scripts/analyze_images.py <project_path>/images
 ## ✅ Strategist Phase Complete
 - [x] Eight Confirmations completed (user confirmed)
 - [x] Split-mode note appended below the eight items (heavy or normal variant)
+- [x] Spec-refinement opt-in line appended (default OFF; only the user's explicit request enters the refine-spec workflow)
 - [x] Design Specification & Content Outline generated
 - [x] Execution lock (spec_lock.md) generated
 - [ ] **Next**: Auto-proceed to [Image_Generator / Executor] phase
@@ -396,16 +400,15 @@ Workflow:
 
 🚧 **GATE**: Step 4 (and Step 5 if triggered) complete; all prerequisite deliverables are ready.
 
-Read the role definition based on the selected style:
+Read the execution references for this deck's locked `mode` + `visual_style` (from `spec_lock.md`):
 ```
-Read references/executor-base.md          # REQUIRED: common guidelines
-Read references/shared-standards.md       # REQUIRED: SVG/PPT technical constraints
-Read references/executor-general.md       # General flexible style
-Read references/executor-consultant.md    # Consulting style
-Read references/executor-consultant-top.md # Top consulting style (MBB level)
+Read references/executor-base.md                  # REQUIRED: common guidelines
+Read references/shared-standards.md               # REQUIRED: SVG/PPT technical constraints
+Read references/modes/<locked-mode>.md            # narrative skeleton (spec_lock.md `mode`)
+Read references/visual-styles/<locked-style>.md   # aesthetic (spec_lock.md `visual_style`)
 ```
 
-> Only read executor-base + shared-standards + one style file.
+> Read executor-base + shared-standards + the one locked mode file + the one locked visual-style file. For `mode: custom` or `visual_style: custom`, skip that preset file and follow `mode_behavior` / `visual_style_behavior` from `spec_lock.md` instead. Never glob `modes/` or `visual-styles/`.
 
 **Design Parameter Confirmation (Mandatory)**: before the first SVG, output key design parameters from the spec (canvas dimensions, color scheme, font plan, body font size). See executor-base.md §2.
 
@@ -496,13 +499,12 @@ python3 ${SKILL_DIR}/scripts/svg_to_pptx.py <project_path>
 > SVG visual reference, so it's only needed when you want a self-contained file
 > to share. Pass `-s output` or `-s final` to force a single source if you need it.
 
-> **Paragraph editability vs line fidelity** — by default every dy-stacked line is
-> its own PowerPoint text frame, preserving exact SVG layout. Add `--merge-paragraphs`
-> only when the user explicitly asks for an editable / wrap-friendly export (e.g.
-> "I want to edit the abstract as one block", "make text boxes resizable / reflow"):
-> mergeable paragraph blocks collapse into one editable text frame with multiple
-> `<a:p>`, at the cost of PowerPoint re-wrapping inside each box. Default off keeps
-> pixel-fidelity; turn it on per the user's request, not on your own judgement.
+> **Paragraph editability vs line fidelity** — by default, mergeable dy-stacked
+> paragraph blocks collapse into one editable PowerPoint text frame with multiple
+> `<a:p>`, improving body-text editing and resize/reflow behavior. Add `--no-merge`
+> only when the user explicitly asks for strict line-layout fidelity or when a
+> layout-tight page must keep every dy-stacked line as its own text frame. The
+> merge detector is conservative; mixed-layout text falls back to per-line frames.
 
 **Optional animation flags** (the defaults already enable rich entrance animations — adjust only when the user asks for something different):
 - `-t <effect>` — page transition. Default `fade`. Options: `fade` / `push` / `wipe` / `split` / `strips` / `cover` / `random` / `none`.

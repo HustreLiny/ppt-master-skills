@@ -22,7 +22,16 @@ As a top-tier AI presentation strategist, receive source documents, perform cont
 
 🚧 **GATE — Mandatory read first**: `read_file templates/design_spec_reference.md` before any analysis or writing. The design_spec.md output MUST follow that template's 11-section structure exactly. After writing, self-check each section is present: I Project Info → II Canvas → III Visual Theme → IV Typography → V Layout → VI Icon → VII Visualization → VIII Image → IX Outline → X Speaker Notes → XI Tech Constraints.
 
-⛔ **BLOCKING**: After the read, present professional recommendations for the eight items below as a bundled package and wait for explicit user confirmation.
+⛔ **BLOCKING**: After the read, present professional recommendations for the eight items below and wait for explicit user confirmation.
+
+**Two-tier confirmation (the default Confirm UI flow; chat mirrors it).** The eight items split into a dependency order, confirmed in two passes:
+
+| Tier | Items | Role |
+|---|---|---|
+| **1 — anchors** | `a` canvas · `c` key info — audience + `content_divergence` + **delivery purpose** *(PPT only)* (promoted out of `g`) · `d` mode + visual_style | confirmed first |
+| **2 — realization** (re-derived from the user's *actual* Tier 1) | `b` page count · `e` color · `f` icon · `g` typography (font + size) · `h` image | derived from Tier 1 |
+
+The realization items are anchored by Tier 1 — `visual_style` governs `e` / `f` / `g` / `h` (§d Layer 2), and delivery purpose sets the §g body size (one fixed value per purpose), page density, **and** the `b` page-count recommendation. So author Tier 2 *after* Tier 1 is confirmed, against the user's real choices. **Page count is derived, not an anchor** — it follows content volume × delivery purpose, which is why it is Tier 2. The launch / re-derive / wait mechanics live in [SKILL.md Step 4](../SKILL.md); the item specs below keep their `a`–`h` letters.
 
 > **Execution discipline**: This is the last BLOCKING checkpoint in the pipeline. After confirmation, complete the Design Spec and proceed to image generation / SVG / post-processing without further pauses.
 >
@@ -36,11 +45,13 @@ Recommend format based on scenario (see [`canvas-formats.md`](canvas-formats.md)
 
 ### b. Page Count Confirmation
 
-Provide specific page count recommendation based on source document content volume.
+**Tier-2 (derived).** Page count is not an anchor — recommend it only after the Tier-1 delivery purpose is confirmed, since the same source yields a different count by purpose. Provide a specific page count recommendation based on source document content volume **and the confirmed delivery purpose** (`text` packs denser → the same source fits in fewer pages; `presentation` is one-idea-per-page → the same source may need more) — see §6.1 Content Planning Strategy. The user's confirmed count still wins; delivery purpose governs density and per-page treatment within it.
 
 ### c. Key Information Confirmation
 
 Confirm target audience, usage occasion, and core message; provide initial assessment based on document nature.
+
+**Delivery purpose** (PPT only) is confirmed here, beside audience, as part of the key information — the deck's consumption mode: `text` (read-close) / `balanced` (business, default) / `presentation`. It is a Tier-1 anchor: it sets the §g body size to one fixed value per purpose, plus the type character, page density, and the §b page-count recommendation (the size and page count re-derived in Tier 2). Recommend one (`recommend.delivery_purpose`, default `balanced`) and let the user confirm. The fixed body value per purpose lives in §g; the density / treatment side lives in §6.1 — here it is surfaced as a key-information choice, not a separate typography step.
 
 **Material divergence** — a **free-text** intent the user states beside audience (same content-strategy cluster): in their own words, how closely the deck should follow the source vs how freely it may reshape it. This is the user's own call — a free prose field (`content_divergence`), **not** a fixed set of options and **not** something you recommend from analyzing the source. Surface the question (in the confirm UI it is a text box under audience; in chat, ask it plainly); leave it for the user to fill. Blank = a balanced default.
 
@@ -219,39 +230,56 @@ See [`../templates/icons/README.md`](../templates/icons/README.md) for the curre
 > - **Calligraphic display** — 隶书 LiSu / 华文行楷 STXingkai / 华文新魏 STXinwei (closest safe substitute: `KaiTi` / `FangSong`); cover / section / hero titles only, never body
 > - **Brand-specific** — McKinsey Bower, corporate VI typefaces
 
-#### Font Size Ramp (all sizes in px)
+#### Font Size Ramp (px throughout)
 
-> **Ramp, not a fixed menu.** All sizes derive from the `body` baseline as a ratio. `spec_lock.md typography` declares `body` plus the slots this deck uses (`title` / `subtitle` / `annotation` by default; add `cover_title` / `hero_number` / `chart_annotation` as needed). Executor may pick any intermediate px within a role's ratio band.
+> **Ramp, not a fixed menu.** All sizes derive from the `body` baseline as a ratio. `spec_lock.md typography` declares `body` plus the slots this deck uses (`title` / `subtitle` / `annotation` by default; add `cover_title` / `hero_number` / `subheading` / `lead` / `footnote` / `chart_annotation` as the outline demands).
+>
+> **Mandatory — scan `§IX` before locking and declare a slot for every role that recurs across pages.** Do not ship only the four defaults when the outline plainly carries more. A report / `text`-mode deck almost always recurs a per-page **core-message / lead line** (the one-sentence key-claim / takeaway under the title) and recurring **page numbers / source credits / footnotes** — declare `lead` (in the 1.1–1.4× lead band, and **always ≥ `body`** — the core message is a primary line, never smaller than body) and `footnote` (keep it readable — **~16px for a standard body, not shrunk smaller**) for them. Leaving these undeclared forces the Executor to improvise an unlocked size, and a core line improvised *below* `body` (with data callouts sitting larger) is exactly the hierarchy inversion this prevents. Recurring chart / figure labels get `chart_annotation` likewise.
+>
+> **Structural roles (page title / body / subtitle / annotation / footnote) resolve to one size each and hold it deck-wide** — that consistency is what reads as professional. Picking an intermediate in-band size is for special / feature elements (hero number, display title, one-off emphasis); a recurring one is declared as its own slot so it stays consistent too.
 
-Baseline scales with **canvas height first, then content density** — the `18`/`24px` figures below anchor to a 720-tall 16:9 canvas (≈2.5–3.3% of height); hold that proportion on taller canvases, never carrying a 16:9 number onto a larger one. Within a canvas, density picks the point in its band (chart-heavy low · medium mid · relaxed / poster / cover high), relative to that canvas's anchor, not a fixed 16:9 px.
+> **Unit boundary (HARD rule).** The system is **px-only**. `recommendations.json`, the Confirm UI, `result.json`, `design_spec.md`, `spec_lock.md`, and SVG **all carry unitless px** — there is no pt layer anywhere, and no pt→px conversion step. pt exists only as the size PowerPoint happens to show *after export* (`px × 0.75`, rounded to 1 decimal); it is never an input, a confirmation value, or a provenance field (no `body_size_pt` / `sizes_pt`). Never write `pt` / `px` / `em` units; every layer carries bare px numbers. Geometry — margins, gaps, card sizes — is px too. (Beautify reads a source deck's pt at intake but converts to px **before** any recommendation — see [`beautify-pptx.md`](../workflows/beautify-pptx.md); pt never re-enters the contract.)
 
-| Canvas | Height | Body baseline (dense–relaxed) |
-|---|---|---|
-| PPT 16:9 / 4:3 | 720 / 768 | 18–24 |
-| Xiaohongshu | 1242×1660 | 40–55 |
-| WeChat / IG 1:1 | 1080×1080 | 27–36 |
-| Story / Portrait | 1080×1920 | 48–64 |
-| A4 | 1240×1754 | 44–58 |
+**Baseline — one fixed value per delivery purpose, not a range.** Delivery purpose is a **Tier-1 anchor confirmed in §c key information** (beside audience, not as a separate typography step — see §1 Two-tier confirmation); it is the primary driver because the same canvas reads very differently when read close vs. projected. It is a **deck-wide** axis — beyond the body baseline it also drives page density / count / rhythm; see §6.1 for that side. Here, with the purpose confirmed, it sets the body baseline to a single value:
 
-> **Canvas drives the baseline — re-derive on change, never carry.** The body baseline is a function of the *confirmed* canvas (item a), not the recommended one. If the user overrides the recommended canvas in confirmation, recompute the baseline (and therefore the whole ramp) for the new canvas before writing `spec_lock.md`: the `body_size` in `recommendations.json` was sized for the recommended canvas and is stale the moment the canvas changes.
+| Delivery purpose (PPT 16:9) | Body (px) | Reads as |
+|---|---:|---|
+| `text` · read-close (report, data-dense brief, leave-behind file) | 20px | screen / handout reading at arm's length |
+| `balanced` · business (presented **and** read; roadshow, review) — **default** | 24px | mixed projection + reading |
+| `presentation` (projected, sparse; keynote, launch, classroom) | 32px | room projection, glance from the back |
 
-| Common recommendation | Points per Page | Body Baseline | Suitable Scenarios |
-|----------------|----------------|---------------|-------------------|
-| Relaxed | 3-5 items | 24px | Keynote-style, training materials |
-| Dense | 6+ items | 18px | Data reports, consulting analysis |
+The body baseline is **purely a function of delivery purpose** — density and visual style do **not** nudge it within a range. Body size is the reading-distance proxy; density is orthogonal and shows in **how much text per page, page count, and `page_rhythm`** (§6.1), the *other* roles, and decoration — never in growing or shrinking the body baseline. One purpose → one body size, identical across the deck. (The user may still override the value in confirmation; absent an override, this fixed value is the recommendation.)
 
-| Level | Ratio to body | 24px baseline | 18px baseline |
+| Canvas | Height | Body baseline | Unit |
+|---|---|---|---|
+| PPT 16:9 / 4:3 | 720 / 768 | 20 / 24 / 32 (by delivery purpose) | **px** |
+| Xiaohongshu | 1242×1660 | 40–55 | px |
+| WeChat / IG 1:1 | 1080×1080 | 27–36 | px |
+| Story / Portrait | 1080×1920 | 48–64 | px |
+| A4 | 1240×1754 | 44–58 | px |
+
+> **Every canvas authors px directly.** PPT and social / print alike — the body baseline is a px number (PPT by delivery purpose above; social / print by the per-canvas value). No pt confirmation, no conversion step on any canvas.
+
+> **Confirmed values win — never recompute over them.** The user's confirmed sizes are authoritative. **Confirm UI path**: take `result.json` `typography.body_size` / `sizes` (already px) **verbatim** — do **not** re-derive from the canvas even if the user changed it. The page deliberately does not auto-rescale font sizes when the canvas changes (it only updates the recommended-value hint), so `result.json` already reflects the user's intent; recomputing here would silently override their choice. **Chat-fallback path** (no `result.json`): take the px body baseline for the confirmed canvas + delivery purpose directly from the table above (no conversion). The `body_size` in `recommendations.json` is only a stale hint once the canvas changes — use the confirmed value, not the recommendation.
+
+| Level | Ratio to body | 32px baseline (`presentation`) | 24px baseline (`balanced`) |
 |-------|---------------|---------------|---------------|
-| Cover title (hero headline) | 2.5-5x | 60-120px | 45-90px |
-| Chapter / section opener | 2-2.5x | 48-60px | 36-45px |
-| Page title | 1.5-2x | 36-48px | 27-36px |
-| Hero number (consulting KPIs) | 1.5-2x | 36-48px | 27-36px |
-| Subtitle | 1.2-1.5x | 29-36px | 22-27px |
-| **Body** | **1x** | **24px** | **18px** |
-| Annotation / caption | 0.7-0.85x | 17-20px | 13-15px |
-| Page number / footnote | 0.5-0.65x | 12-16px | 9-12px |
+| Cover title (hero headline) | 2.5-5x | 80-160px | 60-120px |
+| Chapter / section opener | 2-2.5x | 64-80px | 48-60px |
+| Page title | 1.5-2x | 48-64px | 36-48px |
+| Hero number (consulting KPIs) | 1.5-2x | 48-64px | 36-48px |
+| Subtitle | 1.2-1.5x | 38-48px | 29-36px |
+| Lead-in / intro | 1.1-1.4x | 35-45px | 26-34px |
+| Subheading | 1.1-1.3x | 35-42px | 26-31px |
+| **Body** | **1x** | **32px** | **24px** |
+| Annotation / caption | 0.7-0.85x | 22-27px | 17-20px |
+| Page number / footnote | 0.5-0.65x | 16-21px | 12-16px |
 
-> Two baseline columns are illustrative only — for any other baseline (16/20/22/28/32…), multiply the row's ratio. Checker reads live `body` from `spec_lock.md`. Executor may pick any px within a role's band without pre-declaring; values outside **every** band require lock extension first.
+> Two baseline columns are illustrative only — for any other `body` px value (20 / 24 / 32 / ...), multiply the row's ratio. Structural roles (page title / body / subtitle / annotation / footnote) take their locked slot value and stay there on every page — not a per-page pick. In-band freedom without pre-declaring is for special / feature elements (hero number, display title, one-off emphasis); a recurring special size should be declared as its own slot. The subtitle / lead / subheading bands overlap on purpose — pick by role, not size, then hold each at one size deck-wide. Values outside **every** band require lock extension first.
+
+> **Round recommended sizes to clean even px — don't ship ratio leftovers.** The ratios are a guide; lock each role at a **clean even px**, not the raw product. For `body` 24px that means **title 42 · subtitle 32 · lead 30 · annotation 18 · footnote 16** — never `32.4` / `18.7` / odd tails, which read as unprofessional. Snap the ratio output to the nearest even px (…14, 16, 18, 20, 24, 28, 32, 36, 42, 48…), then lock that. (The Confirm UI already snaps its per-role suggestions this way; match it on the chat-fallback path.)
+
+> **px is literal — write the locked number verbatim (Mandatory).** `result.json` / `design_spec.md` / `spec_lock.md` / SVG all carry px as-is; there is no conversion anywhere. The size you confirm is the size you write. The Executor's `font-size` MUST be the **exact px from `spec_lock.typography`** — if `body` is `24`, write `24`; never a "rounder" or PowerPoint-familiar number (`20` / `18` / `36`). Writing a remembered pt-style value as px is the silent drift that renders a whole deck the wrong size (e.g. a `24`px body emitted as `20` ships ~17% small); the checker's spec-lock drift guard backstops it, but author it right. Per role: honor any size the user pinned as that slot's locked value; derive the rest from the ramp and snap to clean even px. (At export the px is turned back into pt by `× 0.75`, rounded to 1 decimal — that is the only place pt ever appears, and it is automatic.)
 
 > **Hero in single-focus / breathing pages**: when one element *is* the entire page — a large number, a headline, a key phrase — it is the visual subject, not body content. Such heroes may borrow the cover-title band (2.5–5×); for greater emphasis, declare a hero slot in `spec_lock.md` (e.g., `hero_number` / `hero_headline`) — checker exempts declared slots with no fixed upper limit. The row above "Hero number (consulting KPIs) 1.5–2×" applies only to numeric KPIs in dashboard/data layouts, not to full-page focal elements.
 
@@ -322,7 +350,35 @@ The script renders PNGs into `images/`, trying `codecogs`, `quicklatex`, `mathpa
 >
 > Read `<project_path>/analysis/image_analysis.csv` (size / ratio / category of every in-hand picture). The A–E choice is still your judgment, but it MUST be made with the current inventory in full view — never in ignorance of what is already on hand. `image_analysis.csv` is a regenerated view of the live folder, not a durable fact: re-run this whenever `images/` changes.
 
-> **Confirmed value wins.** The `image_usage` in `result.json` (or the chat reply) **overrides the recommendation here** — map it to §VIII `Acquire Via` (`ai`→`ai`, `web`→`web`, `provided`→**`user`**, `placeholder`→`placeholder`, `none`→option A, no image rows). When it is not `ai` (and the plan has no AI part), skip h.5 entirely and write no `ai` rows. See SKILL.md Step 4 for the full mapping.
+> **Recommendation shape.** In `recommendations.json`, write `recommend.image_usage` as source ids, not prose. Use a single id for a single source (`"ai"`) and an array for mixed sources (`["ai", "provided"]`, `["web", "placeholder"]`). Put the strategy explanation in top-level `image_notes.value`: page roles, which supplied assets are authoritative, where AI may fill gaps, what kind of imagery to prefer/avoid, and whether placeholders are acceptable. `none` is exclusive and must not be combined with other ids.
+
+> **Confirmed value wins.** The `image_usage` in `result.json` (or the chat reply) **overrides the recommendation here**. It may be a legacy single string or a Confirm UI multi-select array. Map every selected value to §VIII `Acquire Via` (`ai`→`ai`, `web`→`web`, `provided`→**`user`**, `placeholder`→`placeholder`, `none`→option A, no image rows). When it does not include `ai` (and no legacy prose plan includes AI), skip h.5 entirely and write no `ai` rows. If `image_notes` is present, honor it as the user's image intent while assigning per-page rows. See SKILL.md Step 4 for the full mapping.
+
+> **Illustration roles at a glance (Reference).** Within the `image_usage` source boundary, illustrations can play several roles — pick by what the page needs; the **deck illustration motif** rule below threads them into one system. Mechanics live in the linked files.
+>
+> | Role | When | Mechanism | Source |
+> |---|---|---|---|
+> | Body spot | scattered decorative accent (the icon-counterpart) | `page_role: local`, sheet→slice `#63` ([image-generator §4.3](./image-generator.md)) | `slice` (from an `ai` sheet) / `provided` / `web` |
+> | Hero anchor | cover or a single big statement | `page_role: hero_page` + §4.1 Primitive A or D | per `image_usage` |
+> | Section divider | chapter identity, often recurring | `page_role: hero_page` + `#75` divider layout | same motif family |
+> | Atmospheric background | mood wash behind editable SVG text | `page_role: hero_page` + §4.1 Primitive D | per `image_usage` |
+> | Motif through-line | one family across the roles above, deck-wide (a designed system) | combination of the above | `ai`: generate one family; `provided` / `web`: only if the assets already form one family |
+
+> **Spot illustrations follow the locked `visual_style`'s propensity — a default lean, not a confirmation field.** The user confirms image *source* via `image_usage`; illustrations are not a separate confirmation control, page-role map, or user-facing picker. Within that boundary, whether the deck leans into decorative spot illustrations is anchored by the locked `visual_style`'s **illustration propensity** (`core` / `supportive` / `sparse` — see that style's §6 and the [`visual-styles/_index.md`](./visual-styles/_index.md) `Illus.` column):
+>
+> - **`core`** (e.g. sketch-notes, memphis, paper-cut) — illustration is intrinsic; default to planning a coherent spot family.
+> - **`supportive`** — use where it genuinely lifts rhythm or section identity, kept restrained.
+> - **`sparse`** (e.g. swiss-minimal, photo-editorial, data-journalism) — the style's lead visual competes; default to none.
+>
+> **Precedence (high → low): `image_usage: none` → explicit user intent → visual_style propensity → none.** `image_usage: none` always wins and produces no illustration rows. Otherwise an **explicit user request** to use or skip illustrations (stated in chat — the canonical channel) overrides the propensity default *in either direction*: use them even on a `sparse` style, skip them even on a `core` style. Propensity is only the default when the user gives no steer. Record the decision and its reason in `image_notes` / `design_spec`.
+>
+> **Propensity sets *whether* and the lean — never the *source* or the *how*.** Source still comes from `image_usage`: a `core` style does **not** silently generate AI spots when the user did not select AI — with no AI source it draws only on a confirmed source (`provided` / `web`) or goes without. How heavily and where stays Strategist judgment, and the locked style still governs deployment (a `sparse` style used on explicit request stays very few, very light). Do not force a quota, and do not phrase it as "few pages." Suitable means the spot improves rhythm, warmth, continuity, or section identity without carrying facts or competing with charts, photos, tables, screenshots, or key text.
+
+> **Deck illustration motif — deploy one family as a through-line, not isolated spots.** When the deck leans into illustration (a `core` propensity, or an explicit user request for a designed, illustrated feel), the strongest use is **one coherent motif family** — a single subject world in the deck-wide rendering + palette locked at h.5 — deployed across scales: a cover anchor (`page_role: hero_page`), recurring section dividers for chapter identity ([image-layout-patterns](./image-layout-patterns.md) `#75`), and small body spots (`local` sheet→slice, `#63`). They read as one designed system because they share a family, not just a palette. **Source still bounds it** (same precedence as above): the AI motif — `hero_page` generations plus the sheet→slice spots — is planned **only when the confirmed `image_usage` includes `ai`**. With `provided` / `web`, a through-line is possible only when the supplied or sourced assets already form one visual family to carry across pages; otherwise the deck goes without rather than silently generating AI. Reach for it only when the deck suits it — **not a quota**: not every section needs a divider, a deck with no clear sections or no room for decoration is not forced into a motif, and the through-line never competes with charts, photos, tables, or key text. When a motif is in play, the cover / divider pages surfaced by the **hero_page suggestion** below and the body spots should be drawn from the same family. **The family is not one giant sheet** — the slicer cuts a uniform grid, so cover / divider anchors are their own `hero_page` generations (mechanics: [image-generator.md](./image-generator.md) §4.1) sharing the spot sheet's (§4.3) rendering, palette, and subject world.
+
+**AI generation path — one sheet, then slice.** When spot illustrations are AI-generated and the deck needs ≥3 same-family elements, write one `ai` Illustration Sheet row plus one `slice` row per used element. Step 5 generates the sheet, then slices transparent PNG elements for placement. This is just AI-generated imagery batched for consistency and efficiency; do not generate one image per spot.
+
+**Plan illustration shape from placement, not from a square default.** Before writing the sheet row, group the planned spot illustrations by intended placement shape: compact object, tall side accent, wide banner/vignette, or another explicit shape family. Do not ask for generic "small illustrations" with no shape intent. If one deck needs incompatible shapes, write separate sheet intents instead of forcing every element into one implied square set; Image_Generator owns the exact sheet ratio and grid.
 
 **When recommending C** — surface its three implementation modes so the user knows "no API key" is a supported state:
 
@@ -335,6 +391,8 @@ The script renders PNGs into `images/`, trying `codecogs`, `quicklatex`, `mathpa
 Selection is automatic in Step 5 (A → B → Manual). Detailed contract: [`image-generator.md`](./image-generator.md) §3.2.
 
 Selections may be mixed at the row level — e.g. a deck can use C for hero illustrations while sourcing D for supporting team photos.
+
+> **Spot illustrations → one sheet, not N rows.** When the deck wants ≥3 small same-family spot illustrations as decorative accessories across pages (the illustration counterpart to icons), do not write one `ai` row per element. Write **one `ai` sheet row** (the sheet prompt intent — generated but never placed, kept out of `spec_lock.md images`) **plus one `slice` element row per used element** (each placed, each listed in `spec_lock.md images` so the Executor may reference it). The sheet row's `Reference` must name the intended cell shape family and placement purpose, such as "portrait side-accent spot set" or "landscape footer-vignette spot set"; the slice rows reference the parent sheet + cell. Step 5 / Image_Generator chooses the exact sheet ratio, grid, and slice command. Plan these sparingly, only where decoration genuinely lifts the page. Full resource contract + slice command: [`image-generator.md`](./image-generator.md) §4.3.
 
 #### h.5 AI Image Strategy — lock rendering + palette (only when C is selected)
 
@@ -520,7 +578,7 @@ After the user picks a candidate, scan the outline and surface any pages where t
 | **Layout pattern** | **MANDATORY** — one or more `#<id> <name>` joined by ` + ` from `image-layout-patterns.md`. Combine a Primary id with optional Modifier ids when the page needs it (e.g. `#48 side-by-side comparison + #21 rounded rectangle crop + #29 two-stop scrim`). A single Primary is fine when the page calls for it. See the GATE earlier in this section. Empty cells or invented ids are invalid. |
 | Purpose | e.g., `Cover background` |
 | Type | Free-form category tag — `Background`, `Photography`, `Illustration`, `Diagram`, `Portrait`, `Latex Formula`, etc. Required for formula rows (`Latex Formula`). |
-| **Acquire Via** | `ai` / `web` / `user` / `formula` / `placeholder` — only `ai` and `web` drive Step 5 dispatch |
+| **Acquire Via** | `ai` / `web` / `user` / `formula` / `placeholder` / `slice` — only `ai` and `web` drive Step 5 dispatch; `slice` is derived after its `ai` sheet generates (§4.3) |
 | Status | Initial status must be `Pending`, `Existing`, `Rendered`, or `Placeholder`; see [`svg-image-embedding.md`](svg-image-embedding.md) for the full status enum |
 | **Reference** | Free-form **intent description** (NOT a search query); feeds Image_Generator (ai) or Image_Searcher (web) |
 | `text_policy` (optional, `ai` rows only) | `none` (no text in image) or `embedded` (text is part of the artwork). Leave blank when Image_Generator should decide per row. Long body / data / lists stay in SVG. |
@@ -734,6 +792,16 @@ Templates are starting points. The Strategist may adjust based on content and au
 
 Content-outline and speaker-notes strategy follow the deck's locked **mode** — see [`modes/_index.md`](./modes/_index.md) and the locked mode's file. The guidance below applies within any mode:
 
+**Delivery purpose drives the whole plan, not just type size.** `result.json delivery_purpose` — `text` (read-close) / `balanced` (business, default) / `presentation`, confirmed as a Tier-1 anchor (§1) — is a **deck-wide consumption mode**. It seeds the body baseline (§g) **and** governs how content is distributed:
+
+| Delivery purpose | Per-page density & treatment | §IX content per page | page_rhythm lean |
+|---|---|---|---|
+| `text` · read-close | dense — pack more per page, fuller layouts | prose paragraphs, more blocks, tables / fine detail; complete sentences | leans `dense` |
+| `balanced` · business (default) | balanced | one primary + supporting points; moderate text | mixed |
+| `presentation` | sparse — one idea per page, generous whitespace | keywords / short phrases, a single core message, large visual; never paragraph dumps | leans `anchor` / `breathing` |
+
+This is what makes the axis meaningful: a `presentation` deck and a `text` deck built from the **same source** must differ in per-page text volume, layout density, and rhythm — **not only in font size**. Page count (item b) stays the user's call; delivery purpose governs the **density and treatment within it**, and informs the page-count recommendation when the user has not fixed one. Record the chosen purpose in `design_spec.md §I`. The `page_rhythm` leans are a bias, not a quota — the filler-page ban and "rhythm follows narrative" rule still hold. (Preservation paths — beautify / template-fill — keep source structure verbatim: honor purpose only in styling, never to re-paginate.)
+
 **Per-block expression**: phrase each §IX content block in the mode that fits it — prose, bullet, keyword, or any phrasing the content calls for — not a default bullet. Take the cue from the source's texture: a narrative source (article / transcript / talk) leans prose — resist compressing its argument pages into fragments; a data sheet leans bullet/keyword. Write the real sentence into §IX itself, not a skeleton point to expand later. One page mixes modes; let layout pull each (narrative → prose, structural/chart → bullets/keywords).
 
 > Note: §IX is the only content copy the Executor re-reads after context compression — what you write there is what survives.
@@ -742,7 +810,7 @@ Content-outline and speaker-notes strategy follow the deck's locked **mode** —
 
 | Chapter | Content Requirements |
 |---------|---------------------|
-| I. Project Information | Project name, canvas format, page count, style, audience, scenario, date |
+| I. Project Information | Project name, canvas format, page count, style, audience, scenario, delivery purpose, date |
 | II. Canvas Specification | Format, dimensions, viewBox, margins, content area |
 | III. Visual Theme | Style description, light/dark theme, tone, color scheme (with HEX table), gradient scheme |
 | IV. Typography System | Font plan (per-role families — title / body / emphasis / code), font size hierarchy |
@@ -760,7 +828,7 @@ Content-outline and speaker-notes strategy follow the deck's locked **mode** —
 3. Save to: `projects/<project_name>.../design_spec.md`
 4. **Generate execution lock**: read `templates/spec_lock_reference.md` and produce `projects/<project_name>.../spec_lock.md` — a distilled, machine-readable short form of the color / typography / icon / image / **page_rhythm** / **page_layouts** / **page_charts** decisions above. This file is what the Executor re-reads before every page (see [executor-base.md](executor-base.md) §2.1). The values in `spec_lock.md` MUST exactly match the decisions recorded in `design_spec.md`; if they ever diverge, `spec_lock.md` wins and `design_spec.md` should be treated as historical narrative.
    - **page_rhythm is mandatory**: Based on the page list in §IX Content Outline, assign each page one of `anchor` / `dense` / `breathing` (see `spec_lock_reference.md` for the full vocabulary). This is what breaks the uniform "every page is a card grid" feel — without it the Executor defaults all pages to `dense`.
-   - **Rhythm follows narrative, not quota**: `breathing` pages mark natural pauses — chapter transitions, standalone emphasis (hero quote / big number), SCQA bridges. Dense decks may legitimately be all `dense`. **Do NOT invent filler pages** ("Thank you", empty dividers) to pad rhythm — every `breathing` page must say something independent.
+   - **Rhythm follows narrative, not quota**: `breathing` pages mark natural pauses — chapter transitions, standalone emphasis (hero quote / big number), SCQA bridges. Dense decks may legitimately be all `dense`. **Do NOT invent filler pages** ("Thank you", empty dividers) to pad rhythm — every `breathing` page must say something independent. Delivery purpose biases the overall lean (`presentation` toward more `anchor` / `breathing`, `text` toward `dense`; see §6.1) — a bias, never a quota.
    - **Cover impact is mandatory**: Page `P01` is the deck's first visual contract, not a generic title slide. In `design_spec.md §IX`, add a `Cover impact` line for `P01` that names one concrete hook and one concrete composition strategy. Use the source's strongest available signal: a provocative core claim, object / scene metaphor, hero number, founder / product / audience moment, or a distilled conflict. Pair it with one concrete composition strategy — such as `full-bleed image + floating title`, `typographic poster`, `hero object`, `data hook`, `editorial scene`, `high-contrast abstract geometry`, or a fresh composition the deck's subject suggests (these are starting points, not the allowed set). If no external or AI image is available, still specify a native-SVG visual hook; do not fall back to "title + subtitle + decorative background". (Beautify / template-fill keep the source cover verbatim — this rule does not apply on those preservation paths.)
    - **Cover rhythm lock**: `P01` remains `anchor` in `spec_lock.md page_rhythm`, but its §IX `Cover impact` must prevent content-page patterns. Do not plan multi-card grids, agenda-like bullets, or equal-weight columns on the cover unless a template explicitly requires that structure, or a preservation path (beautify / template-fill) is transcribing the source cover verbatim.
    - **Closing impact (only when the deck closes)**: the deck's last page is its final visual contract — the strongest impression after the cover. When the deck genuinely lands on a conclusion / call-to-action / final-takeaway page, give it a `Closing impact` line in §IX: name the one thing the audience should leave with (a distilled takeaway, a forward call, a memorable restatement of the core claim) + one composition that delivers it — never a generic "Thank you" / contact-only slide or a centered-title reprise of the cover. **Do NOT invent a closing page to satisfy this** — the filler-page ban above still holds; apply it only to the page where the deck actually resolves. Same exemptions as the cover: skip on template / beautify / template-fill preservation paths.

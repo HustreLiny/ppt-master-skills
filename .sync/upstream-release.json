@@ -1,9 +1,9 @@
 {
   "upstreamRepo": "hugohe3/ppt-master",
   "upstreamPath": "skills",
-  "tagName": "v2.13.0",
-  "releaseUrl": "https://github.com/hugohe3/ppt-master/releases/tag/v2.13.0",
-  "publishedAt": "2026-07-02T13:31:51Z",
-  "commitSha": "da31f2ac0b3035f266c190a268fce2abbd84b949",
-  "syncedAt": "2026-07-03T02:32:49Z"
+  "tagName": "v3.0.0",
+  "releaseUrl": "https://github.com/hugohe3/ppt-master/releases/tag/v3.0.0",
+  "publishedAt": "2026-07-03T15:25:21Z",
+  "commitSha": "08600313c3d04c6d7ec8cd283a33bb0cb9e75117",
+  "syncedAt": "2026-07-04T02:30:13Z"
 }

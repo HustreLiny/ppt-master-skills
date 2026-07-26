@@ -27,7 +27,7 @@ python3 scripts/source_to_md/pdf_to_md.py <file.pdf>
 python3 scripts/source_to_md/ppt_to_md.py <deck.pptx>
 python3 scripts/source_to_md/excel_to_md.py <workbook.xlsx>
 python3 scripts/project_manager.py init <project_name> --format ppt169
-python3 scripts/project_manager.py import-sources <project_path> <source_files_or_dirs...> --move
+python3 scripts/project_manager.py import-sources <project_path> <source_files_or_dirs...>
 python3 scripts/total_md_split.py <project_path>
 python3 scripts/finalize_svg.py <project_path>
 python3 scripts/animation_config.py scaffold <project_path>  # optional object-level animation overrides
@@ -46,7 +46,7 @@ python3 scripts/update_repo.py
 |------|-----------------|---------------|
 | Conversion | `source_to_md.py`, `source_to_md/pdf_to_md.py`, `source_to_md/doc_to_md.py`, `source_to_md/excel_to_md.py`, `source_to_md/ppt_to_md.py`, `source_to_md/web_to_md.py`, `pptx_intake.py`, `pptx_to_svg.py` | [docs/conversion.md](./docs/conversion.md) |
 | Project management | `project_manager.py`, `page_context.py`, `batch_validate.py`, `generate_examples_index.py`, `error_helper.py`, `pptx_template_import.py`, `template_fill_pptx.py`, `native_enhance_pptx.py` | [docs/project.md](./docs/project.md) |
-| SVG pipeline | `preset_shape_svg.py`, `svg_authoring_view.py`, `compact_svg_coordinates.py`, `mirror_template_materialize.py`, `finalize_svg.py`, `svg_to_pptx.py`, `template_preview_pptx.py`, `total_md_split.py`, `svg_quality_checker.py`, `extract_svg_assets.py`, `extract_svg_pictures.py`, `animation_config.py`, `notes_to_audio.py` | [docs/svg-pipeline.md](./docs/svg-pipeline.md); [native preset authoring](../references/native-shape-authoring.md) |
+| SVG pipeline | `preset_shape_svg.py`, `svg_authoring_view.py`, `compact_svg_coordinates.py`, `mirror_template_materialize.py`, `finalize_svg.py`, `svg_to_pptx.py`, `template_preview_pptx.py`, `total_md_split.py`, `svg_quality_checker.py`, `extract_svg_assets.py`, `extract_svg_pictures.py`, `animation_config.py`, `notes_to_audio.py`, `narration_sync.py` | [docs/svg-pipeline.md](./docs/svg-pipeline.md); [native preset authoring](../references/native-shape-authoring.md) |
 | PPTX transitions | `pptx_transitions.py` | [docs/pptx-transitions.md](./docs/pptx-transitions.md) |
 | PPTX animations | `pptx_animations.py`, `animation_config.py` | [docs/pptx-animations.md](./docs/pptx-animations.md) |
 | Spec maintenance | `update_spec.py`, `chart_recall.py` | [docs/update_spec.md](./docs/update_spec.md); [docs/chart-recall.md](./docs/chart-recall.md) |
@@ -72,7 +72,7 @@ Project setup:
 
 ```bash
 python3 scripts/project_manager.py init <project_name> --format ppt169
-python3 scripts/project_manager.py import-sources <project_path> <source_files_or_dirs...> --move
+python3 scripts/project_manager.py import-sources <project_path> <source_files_or_dirs...>
 python3 scripts/project_manager.py scaffold-spec <project_path>  # optional manual helper
 python3 scripts/project_manager.py scaffold-lock <project_path>  # optional manual helper
 python3 scripts/project_manager.py validate <project_path>
@@ -80,13 +80,15 @@ python3 scripts/project_manager.py page-context <project_path> P07 --record-usag
 python3 scripts/project_manager.py page-context-report <project_path>
 ```
 
-`page-context` prints a read-only compact current-page projection. Its global
-lock projection repeats per page as a continuity anchor set, not a color/font allowlist; large Design Specs,
+`page-context` is an on-demand read-only current-page projection for diagnostics,
+routing checks, or context measurement; normal generation retains the complete
+Design Spec and lock once per valid execution context. Each invocation includes
+the global lock projection as a continuity anchor set, not a color/font allowlist; large Design Specs,
 prototype, and `templates/charts/` references are emitted only as scoped
 path/SHA fingerprints and are read once per execution context. `--bundle` is a
 deprecated compatibility no-op. `--record-usage` writes one derived snapshot
 under `analysis/page-context/`; exact `o200k_base` token counts are optional and
-degrade to `tokens: null` when `tiktoken` is absent.
+degrade to `tokens: null` when `tiktoken` is absent. Telemetry may be partial.
 
 Chart candidate recall:
 

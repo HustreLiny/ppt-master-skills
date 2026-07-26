@@ -199,28 +199,38 @@ def recall_candidates(
     else:
         confidence = "none"
 
+    fallback_required_before_no_match = (
+        confidence in {"low", "none"} and not force_semantic_fallback
+    )
+    if fallback_required_before_no_match:
+        no_match_instruction = (
+            f"Lexical confidence is {confidence}. Select a bounded candidate when one "
+            "fits; otherwise rerun the same recall with --semantic-fallback before "
+            "keeping no-template-match. Keep the final negative result out of Design "
+            "Spec Section VII and describe the chosen fallback in the page's Section "
+            "IX block."
+        )
+    else:
+        no_match_instruction = (
+            "Use when none of the reviewed candidates fits the page structure. Keep "
+            "this result out of Design Spec Section VII and describe the chosen fallback "
+            "in the page's Section IX block."
+        )
+
     result: dict[str, object] = {
         "page": page,
         "semantic_tags": tags,
         "confidence": confidence,
         "candidates": candidates,
         "no_template_match": {
-            "allowed": True,
+            "allowed": not fallback_required_before_no_match,
             "key": "no-template-match",
-            "instruction": (
-                "Use only when no catalog rule fits after the applicable lexical and "
-                "semantic review."
-            ),
+            "instruction": no_match_instruction,
         },
     }
-    if confidence in {"low", "none"} or force_semantic_fallback:
-        reason = (
-            "requested-after-candidate-conflict"
-            if force_semantic_fallback
-            else f"lexical-confidence-{confidence}"
-        )
+    if force_semantic_fallback:
         result["semantic_fallback"] = {
-            "reason": reason,
+            "reason": "requested-after-bounded-review",
             "instruction": (
                 "Semantically compare the page tags with every returned selection rule. "
                 "Choose one exact catalog key or keep no-template-match; lexical overlap "
@@ -278,7 +288,8 @@ def _run_validate(args: argparse.Namespace) -> int:
     if invalid:
         print(
             "Error: replace each invalid key with a key returned by the recall command, "
-            "or record no-template-match without a page_charts entry.",
+            "or keep no-template-match out of Section VII and page_charts while "
+            "recording the custom fallback in the page's Section IX block.",
             file=sys.stderr,
         )
         return 1
@@ -311,7 +322,7 @@ def build_parser() -> argparse.ArgumentParser:
     recall.add_argument(
         "--semantic-fallback",
         action="store_true",
-        help="Include the full catalog for AI semantic review after candidate conflict.",
+        help="Include the full catalog when bounded recall may have missed a semantic match.",
     )
     recall.set_defaults(handler=_run_recall)
 

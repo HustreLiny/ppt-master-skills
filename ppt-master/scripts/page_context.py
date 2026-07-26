@@ -29,6 +29,7 @@ from typing import Callable, Iterable
 from project_specs import (
     default_spec_lock_forbidden,
     parse_markdown_artifact,
+    parse_spec_lock_artifact,
     validate_project_artifacts,
 )
 from svg_to_pptx.pptx_package.template_structure import (
@@ -398,15 +399,19 @@ def _reference_payload(
     *,
     scope: str,
     display_path: str,
+    same_context_edit_policy: str | None = None,
 ) -> dict[str, str]:
     """Describe one large reference without injecting its contents per page."""
-    return {
+    payload = {
         "kind": kind,
         "scope": scope,
         "path": display_path,
         "sha256": _file_sha256(path),
         "load_policy": "once-per-execution-context",
     }
+    if same_context_edit_policy is not None:
+        payload["same_context_edit_policy"] = same_context_edit_policy
+    return payload
 
 
 def _chart_reference(chart_key: str) -> tuple[dict[str, str], Path]:
@@ -456,7 +461,7 @@ def build_page_context(project: str | Path, raw_page: str) -> PageContextResult:
             f"{preview}{suffix}"
         )
     try:
-        lock_sections_raw = parse_markdown_artifact(
+        lock_sections_raw = parse_spec_lock_artifact(
             lock_path,
             report_duplicate_fields=True,
         )
@@ -517,6 +522,7 @@ def build_page_context(project: str | Path, raw_page: str) -> PageContextResult:
             design_path,
             scope="project",
             display_path="design_spec.md",
+            same_context_edit_policy="targeted-readback-and-rebind",
         ),
     ]
     template_design_path = project_path / "templates" / "design_spec.md"
@@ -546,8 +552,8 @@ def build_page_context(project: str | Path, raw_page: str) -> PageContextResult:
         reference_set.append(chart_reference)
     mode_fields = _section_fields(lock_sections, "mode")
     visual_style_fields = _section_fields(lock_sections, "visual_style")
-    # Repeat this bounded projection per page intentionally: stable lock roles
-    # are continuity anchors, while large reference payloads use reference_set.
+    # Each on-demand projection includes bounded lock anchors; large reference
+    # payloads stay outside it and are represented by reference_set.
     global_context = {
         "communication": _section_fields(lock_sections, "communication"),
         "canvas": _section_fields(lock_sections, "canvas"),
@@ -586,7 +592,7 @@ def build_page_context(project: str | Path, raw_page: str) -> PageContextResult:
         "lock_source": {
             "path": "spec_lock.md",
             "sha256": _file_sha256(lock_path),
-            "load_policy": "per-page-context-anchors",
+            "load_policy": "on-demand-anchor-projection",
         },
         "global": global_context,
         "page_context": current_page,

@@ -41,7 +41,7 @@ tell; each capability above earns its place per page, not per deck.
 | Page transition | CLI: `fade`, 0.4s | Calm baseline that suits most decks; the public Python builder retains its legacy 0.5s default |
 | Per-element animation | **`none` (off)** | A page appears as a whole. Auto-firing element builds are an unsolicited "AI deck" tell, so object animation is opt-in. Turn on the content-aware canonical entrance policy with `-a auto`, or select one PowerPoint-native `entrance_*`, `emphasis_*`, `path_*`, or `exit_*` key explicitly |
 
-To regenerate a deck with different settings, rerun `svg_to_pptx.py` against the same `svg_output/` — no need to rerun the LLM. `-s final` is reserved for diagnostic comparison and is not a supported release source. To turn per-element animation on for the whole deck, pass `-a auto`.
+To regenerate a deck with different settings, rerun the final checker when its current matching report is absent or stale, then rerun `svg_to_pptx.py` against the same `svg_output/`; the content-generation LLM need not rerun unless authored SVG requires repair. `-s final` is reserved for diagnostic comparison and is not a supported release source. To turn per-element animation on for the whole deck, pass `-a auto`.
 
 ---
 
@@ -333,7 +333,7 @@ other visible state is expected to change; both endpoints must still resolve to
 one compatible top-level PowerPoint object kind. Automatic Morph without pairs
 is heuristic and may cross-fade instead of tweening.
 
-**Give text somewhere to come from.** Morph tweens objects present on both pages; text that only exists on the second page can only fade in. The standard fix is to place the *next* page's copy on the current page just outside the canvas (below), and the *previous* page's copy just outside the opposite edge (above). Each block then slides through the frame instead of blinking, and the deck reads as one continuous surface being scrolled. Objects parked outside the canvas are not rendered but must still exist on both pages and be explicitly paired when deterministic identity matters.
+**Give text somewhere to come from.** Morph tweens objects present on both pages; text that only exists on the second page can only fade in. The standard fix is to place the *next* page's copy on the current page just outside the canvas (below), and the *previous* page's copy just outside the opposite edge (above). Each block then slides through the frame instead of blinking, and the deck reads as one continuous surface being scrolled. A wholly off-canvas endpoint must be one direct-root `<g id>` with valid `data-pptx-bounds` and `data-pptx-morph-staging="true"`; when Morph remains enabled, pair it explicitly under §2.1. The marker only declares an intentional invisible endpoint; it cannot excuse a partially clipped group or text carrier.
 
 **When Morph refuses to match**: PowerPoint pairs compatible object kinds; a
 shape and a picture will cross-fade instead of tweening. For generated pages,
@@ -353,9 +353,13 @@ that attribute remains importer metadata for mirror/preserve packages
 
 Off by default — enable deck-wide with `-a auto` (or another effect). Once enabled, three Start modes are available — these mirror PowerPoint's animation-pane "Start" dropdown:
 
-- **`on-click`** — entering a slide → first click reveals the first semantic group; each subsequent click reveals the next group in z-order. Suits live presentations where the speaker paces reveals. Forbidden with `--recorded-narration` because video-ready exports need click-free playback.
-- **`with-previous`** — all groups start together on slide entry, playing their object animation in parallel. Stagger ignored.
-- **`after-previous`** (default) — first group fires on slide entry, subsequent groups cascade after the previous one finishes, with `--animation-stagger` extra spacing. Suits kiosk playback, recorded walkthroughs, or anyone who wants visual flow without clicking.
+- **`on-click`** — each click reveals the next group. Use only for a controlled semantic reveal; live delivery alone is insufficient. Forbidden with `--recorded-narration`.
+- **`with-previous`** — groups start together as one coordinated beat. Stagger ignored.
+- **`after-previous`** (default) — click-free cascade on slide entry with `--animation-stagger` spacing. Use when controlled reveals are unnecessary.
+
+**Default — coherent Start rhythm (may override when a semantic beat needs
+different control)**: Keep one dominant deck rhythm and normally one mode per
+slide. Mix only for a distinct simultaneous or presenter-controlled beat.
 
 Enable with `-a auto`, select a canonical effect with
 `--animation entrance_fade`, and choose Start behavior with
@@ -378,9 +382,10 @@ matching lifecycle instead.
 | `move` | state/position A → progress → state/position B | The trajectory carries spatial or causal meaning, or §4.1 adopts subordinate ambient motion; use Morph for cross-page continuity | Explicit `path_*`, or endpoint pages + Morph |
 | `exit` | present → retire → absent | The same slide must remove, replace, or make room for content; an ordinary page change needs no object exit | Explicit `exit_*` |
 
-Entrance is the common opt-in family for staged information, not a deck or
-category quota. A unit may use several ordered `effects[]` rows only when it
-has several real lifecycle duties.
+**Default — restrained entrance-led choreography (may override for content,
+tone, or the request)**: Use entrances for ordinary builds. Add emphasis or
+exit sparingly, only for a real duty and fitting effect. Multiple `effects[]`
+rows require multiple duties.
 
 The registry exposes two layers:
 

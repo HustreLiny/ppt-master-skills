@@ -18,10 +18,12 @@ Page count alone never activates or blocks this profile.
 
 | Concern | Quick Generate contract |
 |---|---|
+| Authority | Follow every explicit user requirement as stated; decide every unspecified choice directly without asking |
 | Interaction | The current main agent decides content, design, resources, and implementation without Strategist, Confirm UI, or approval stops |
 | Inputs | Any supported Generate input; convert/import sources and run bounded factual research when the input requires them |
+| Templates | Directly validate and install at most one exact workspace root per kind supplied for this run; when none are supplied, use free design without catalog selection or Confirm UI |
 | Resources | Prepare every project-local image, icon, formula, and required provenance/manifest artifact before the referencing SVG is authored |
-| Planning artifacts | Do not create `design_spec.md`, `spec_lock.md`, confirmation payloads, or a second persisted strategy |
+| Planning artifacts | Do not author a root project `design_spec.md`, `spec_lock.md`, confirmation payloads, or a second persisted strategy; an installed `templates/design_spec.md` remains template input |
 | Delivery | Hand-author the resolved SVG roster, run one lockless final checker, skip `finalize_svg.py`, and export the final native PPTX through `--quick-generate` |
 
 **Hard rule — speed removes interaction, not material**: all ordinary source,
@@ -40,7 +42,7 @@ Pause only for user interruption or an unresolved hard prerequisite.
 notes, custom object animations, and narration start off. The current agent may
 enable any ordinary capability when the request or deck benefits; use its
 normal inputs, flags, and prerequisites without asking for approval. Quick
-never creates or reads a Design Spec or lock to enable it.
+never creates or reads a root project Design Spec or lock to enable it.
 
 **Mandatory — discover motion before deciding whether to load it**: scan this
 compact gate once; do not load the full execution reference when the defaults
@@ -63,8 +65,26 @@ point; a before-authoring signal always overrides a before-export-only timing.
 
 ## 2. Source and Resource Preparation
 
-Run [`generate-pptx.md`](../generate-pptx.md) Step 1 when applicable. Initialize
-the minimal workspace with:
+Run [`generate-pptx.md`](../generate-pptx.md) Step 1 when applicable. Before
+initialization, resolve exactly one of these branches:
+
+- **Direct template application**: one or more exact current workspace roots
+  were supplied in the request, or Create Template returned an exact validated
+  root in the current conversation. Accept at most one root per declared kind.
+  Before initialization, load
+  [`apply-template-workspace`](../stages/apply-template-workspace.md), normalize
+  each supplied root, read only the matching spec frontmatter needed to resolve
+  its kind/canvas, and run that stage's read-only schema/structured preflight.
+  Do not scan the library, fuzzy-match a name, or open a selector. Explicit user
+  canvas wins; otherwise use the selected structure owner (Layout before Deck)
+  canvas when present, then fall back to `ppt169`.
+- **Free design**: no exact root was supplied. Continue immediately with the
+  requested canvas or `ppt169`. A bare template name, brand mention, style
+  phrase, or vague request to choose a template is ordinary brief input, not a
+  workspace reference.
+
+Neither branch creates anything under `confirm_ui/` or executes
+`confirm_ui/server.py`. Initialize the minimal workspace with:
 
 ```bash
 python3 ${SKILL_DIR}/scripts/project_manager.py init <project_name> \
@@ -79,9 +99,29 @@ Design Spec or lock. Use a new path, or verify that an existing path's
 `svg_output/` is empty; Quick ignores any existing `design_spec.md` or
 `spec_lock.md`.
 
+For the direct-template branch, resume
+[`apply-template-workspace`](../stages/apply-template-workspace.md) after
+initialization against only the preflighted roots. The user's request is the
+selection authority; there is no template confirmation receipt or handoff. The
+stage installs and fuses the workspaces into `<project_path>/templates/` plus
+the project-local asset pools. All later reads use that installed state, never
+the original roots.
+
+Before writing P01, read the installed template spec once and, for Layout/Deck,
+inspect the relevant SVG prototypes. Resolve one transient application plan in
+active context: apply Brand identity, Style direction/method, the selected
+structure owner's useful prototype geometry, and Deck application context under
+the existing segment precedence. Follow explicit instructions about literal or
+visual-only use; otherwise decide which prototypes to use, skip, repeat,
+reorder, or adapt from the current content. Persist no second plan. If no
+template was installed, resolve the same design choices freely.
+
 Before writing P01, resolve in active context:
 
-- the slide roster, canvas, visual direction, palette, typography, and wording;
+- the exact slide roster and one compact core message for every page, used to choose its composition and hierarchy;
+- the canvas, visual direction, palette, wording, and one concrete typography plan using installed font families, with stable size anchors for title, body, annotation, and every other recurring role the roster uses; explicit user, template, or resolved-style requirements may call for a deliberate exception;
+- an ordinary body-content frame and a density judgment for every page, adapted to the canvas and any user / template / style geometry; use `anchor`, `dense`, `breathing`, or an equivalent active-context distinction instead of one uniform fill level;
+- for each page not bound to literal supplied geometry, a primary visual zone and page-scale composition direction tied to its core message; use cards or equal grids when the content relationship calls for them, not as the automatic page grammar;
 - when useful, one transient deck-level visual motif with an identity or
   communication job, a recognizable invariant, and planned variation across
   applicable page roles; omit it when restraint serves the deck better;
@@ -120,7 +160,8 @@ silently replace it with unrelated material.
 
 ## 3. Direct SVG Authoring
 
-Always read
+Always read the following fixed authoring references directly in one batch; do
+not route among them one file at a time:
 [`shared-standards-core.md`](../../references/shared-standards-core.md),
 [`svg-effects.md`](../../references/svg-effects.md), and
 [`native-shape-authoring.md`](../../references/native-shape-authoring.md). Do
@@ -134,21 +175,32 @@ this profile. For any image/formula, always read
 web image. Load [`canvas-formats.md`](../../references/canvas-formats.md) only
 for a non-default canvas.
 
+Keep the core's shared visual-quality / leading defaults and `svg-effects.md` §6.1 Visual Job Router active while authoring. Explicit user/template requirements and the resolved style override compatible aesthetic defaults, never technical Required / Forbidden boundaries.
+
+**Per-page execution anchors**: apply the transient core-message, typography-role, body-frame, density, and composition anchors resolved in §2 throughout the roster; they guide authoring without creating a persisted planning artifact.
+
 Use one zero-padded filename width sized for the resolved roster, such as
 `01_cover.svg` through `12_end.svg` or `001_cover.svg` through `120_end.svg`.
 Never reuse pages from another run: the exporter publishes every SVG discovered
 under `svg_output/`.
 
-**Canvas**: unless the user specifies another canvas, use `ppt169` with
-`viewBox="0 0 1280 720"`. For another requested registered format, load
+**Canvas**: use the canvas resolved in §2: explicit user choice, otherwise the
+selected Layout/Deck structure-owner canvas, otherwise `ppt169` with
+`viewBox="0 0 1280 720"`. For another registered format, load
 [`canvas-formats.md`](../../references/canvas-formats.md) and use its exact
-viewBox. The first SVG establishes the export canvas; every remaining page must
-match it exactly.
+viewBox. Template canvas is a default, not a compatibility gate; an explicit
+user canvas may adapt the installed visual system. The first SVG establishes
+the export canvas; every remaining page must match it exactly.
 
-**Structure**: author flat, Slide-local SVG only. Include the complete visible
-page and all resource references in each SVG; set one root
+**Structure**: author flat, Slide-local SVG only, including when a Layout or
+Deck workspace is installed. In that branch, visibly realize the resolved
+template rules and prototype geometry in the complete pages; do not fall back to
+free design or merely explain how the template could be used. Include the
+complete visible page and all resource references in each SVG; set one root
 `data-pptx-page-role` from `cover`, `toc`, `section`, `content`, or `ending`,
-and omit Master/Layout/layer/placeholder metadata.
+and omit Master/Layout/layer/placeholder metadata. A request that specifically
+requires reusable native Master/Layout/placeholder output is incompatible with
+the lockless Quick exporter and must use the default lock-backed profile.
 
 **Typography**: name an installed concrete font family in the SVG; do not depend
 on a lock or generated font asset.
@@ -202,6 +254,6 @@ or lock.
 - [x] The lockless final SVG quality report passes and matches the current SVGs
 - [x] Every selected optional export capability completed
 - [x] One native PPTX exists under `exports/` or the explicit output path
-- [x] No Strategist, confirmation, Design Spec, or lock artifact was created
+- [x] No Strategist, confirmation, root project Design Spec, or lock artifact was created
 - [ ] **Next**: Report the PPTX path
 ```

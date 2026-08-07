@@ -27,9 +27,9 @@ description: Optional post-processing stage for per-slide and per-object animati
 | No existing sidecar; user only wants deck-wide page transitions, auto-advance, or one per-element object animation policy | Do not run; apply [`animations.md`](../../references/animations.md) with exporter flags such as `-a auto` or `-a emphasis_spin` |
 | `svg_output/*.svg` is missing | Complete the main Executor phase first |
 
-**Decision precedence**: latest explicit instruction → Stage 3 policy →
-compatibility default `false`; provenance stays in Design Spec §I, never the
-lock. Stage 3 `false` blocks creation, not an existing sidecar. Existing
+**Decision precedence**: latest explicit instruction → final Stage-2 policy →
+workflow default `false`; provenance stays in Design Spec §I, never the
+lock. Final Stage-2 `false` blocks creation, not an existing sidecar. Existing
 sidecars enter this stage; explicit disables follow the table without deletion.
 
 ---
@@ -190,12 +190,12 @@ deck-wide transition review.
 | Page animation defaults | `defaults.animation` or `slides.<slide>.animation` | Control the default object-animation behavior for animated groups on a slide |
 | Object lifecycle | `slides.<slide>.groups.<group_id>` | Assign one legacy effect row or an ordered `effects[]` sequence to a real SVG motion unit |
 
-**Per-affected-page motion brief**: decide what communication job the requested
-motion should perform—or that it should perform none. Classify the relevant
-motion units by lifecycle before choosing effects, then select only the
-relevant transition, object effects, order, and timing. Use
-`design_spec.md` for slide role, `spec_lock.md` for rhythm and visual style,
-speaker notes for narration order, and SVG group ids for target validity.
+**Per-affected-page motion brief**: classify the communication job—including
+none—and each unit's lifecycle. Choose only the required transition, effect,
+order, timing, and one dominant Start rhythm; mix modes or add emphasis and
+exit only for a distinct job with a restrained, fitting effect. Read
+`design_spec.md`, `spec_lock.md`, speaker notes, and SVG group ids for role,
+rhythm, order, and target validity.
 
 **Mandatory — select from meaning, not catalog coverage**: run the
 page-relationship and lifecycle selection playbooks in
@@ -296,9 +296,9 @@ entrance treatment is sufficient.
 
 | Trigger | Behavior |
 |---|---|
-| `after-previous` | Cascade automatically on slide entry |
-| `with-previous` | Start together on slide entry |
-| `on-click` | One presenter click per animated group |
+| `after-previous` | Default click-free cascade |
+| `with-previous` | One coordinated beat together |
+| `on-click` | Controlled semantic reveal |
 
 ---
 

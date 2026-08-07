@@ -16,6 +16,7 @@ Dependencies:
 import sys
 from pathlib import Path
 
+from attribution_guard import require_skill_integrity
 from slide_roster import discover_slide_svgs
 
 from .checker import SVGQualityChecker
@@ -77,7 +78,7 @@ def print_usage() -> None:
     print("  --quick-generate               Validate lockless flat Quick Generate SVGs;")
     print("                                  ignore design_spec.md and spec_lock.md.")
     print("  --template-mode               Validate a template workspace's templates/ directory:")
-    print("                                  Brand validates design_spec.md and referenced assets;")
+    print("                                  Brand/Style validate their portable workspace contracts;")
     print("                                  Layout/Deck glob *.svg directly, skip spec_lock checks,")
     print("                                  enforce roster consistency, and emit placeholder hints.")
     print("                                  native_structure_mode: structured also enables complete")
@@ -90,6 +91,7 @@ def print_usage() -> None:
 
 def main() -> None:
     """Run the CLI entry point."""
+    require_skill_integrity()
     if len(sys.argv) < 2:
         print_usage()
         sys.exit(0)

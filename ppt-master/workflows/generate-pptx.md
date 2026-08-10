@@ -1,10 +1,12 @@
 ---
-description: Generate PPTX route authority for source intake, planning, SVG authoring, quality gates, and native PPTX export.
+description: Default Generate PPTX authority for source intake, planning, SVG authoring, quality gates, and native PPTX export.
 ---
 
 # Generate PPTX Route
 
-> Load only after [`routing.md`](./routing.md) selects Generate PPTX. This file owns the route's Step 1–7 sequence, gates, role switching, and mandatory commands.
+> Load only after [`routing.md`](./routing.md) selects Default Generate or its
+> Beautify profile. This file owns that runtime's Step 1–7 sequence, gates, role
+> switching, and mandatory commands. Explicit Quick loads its own profile instead.
 
 **Default Core Pipeline**: `Initial Materials → [Fact Research] → Create Project → Template Candidate Preparation → Stage-1 Communication + Template Confirmation → [Template Installation] → Stage-2 Solution → [Image Acquisition] → Executor Live Preview → Quality Check → Post-processing → Export`
 
@@ -15,31 +17,9 @@ description: Generate PPTX route authority for source intake, planning, SVG auth
 - `preset_shape_svg.py` and `shape_boolean_svg.py` may provide only their documented stdout fragment(s) after the main agent chooses the object's role, operands, paint, and z-order; neither helper chooses layout or writes a page.
 - Gate checklists are internal verification, not user-facing output. On success, continue automatically and emit at most one compact status line when useful; on failure, report only the blocking items and required recovery.
 
-### Quick Generate Profile Short Circuit
-
-For an explicit quick/fast, skip-strategy, or direct-SVG request, follow
-[`quick-generate.md`](./profiles/quick-generate.md). It runs applicable source
-conversion/research and project-local resource preparation, lets the current
-agent decide content/visual/resource details in active context, then
-hand-authors SVG, runs one lockless final checker, and exports the final PPTX.
-It skips Strategist, Confirm UI, Design Spec/lock, the first-page gate, and
-`finalize_svg.py`.
-
-Quick never enters Steps 3–4. When the request supplies at most one exact current
-workspace root for each Brand/Style/Layout/Deck kind, or the current
-conversation carries an exact Create Template handoff, Quick runs
-[`apply-template-workspace`](./stages/apply-template-workspace.md) directly and
-uses the installed project-local state during authoring. With no exact root it
-uses free design. It never launches `confirm_ui/server.py`, reads the template
-catalog to choose on the user's behalf, or creates template-selection receipts;
-a bare template name, brand mention, or style description remains brief text.
-
-**Hard rule — no implicit downgrade or page cap**: page count neither selects
-nor blocks quick generation. Source preparation, images, icons, formulas, and
-their manifests remain valid. All exporter capabilities remain available when
-requested or agent-selected; use their existing prerequisites. Structured
-Master/Layout template compilation still requires the default lock-backed
-pipeline; Quick applies templates while authoring complete flat pages.
+**Profile boundary**: Explicit Quick is selected before runtime authority
+loading and never enters this file. Beautify enters this file only when its
+request does not explicitly select Quick.
 
 ### SVG Page-Design Boundary
 
@@ -62,7 +42,7 @@ pipeline; Quick applies templates while authoring complete flat pages.
 | Artifact ownership | [`artifact-ownership.md`](../references/artifact-ownership.md) | Owns fact channels, source/derived artifact boundaries, and regeneration rules |
 | Failure recovery | [`failure-recovery.md`](./governance/failure-recovery.md) | Owns stop/continue policy and resume pointers |
 | Confirm UI details | [`confirm_ui.md`](../scripts/docs/confirm_ui.md) | Owns the JSON schema, launcher behavior, staged-result contract, port strategy, and chat fallback details |
-| Confirmed template application | [`apply-template-workspace.md`](./stages/apply-template-workspace.md) | Owns validation, installation, and fusion after Stage 1 confirms library or explicit workspace roots; skip for confirmed free design |
+| Confirmed template application | [`apply-template-workspace.md`](./stages/apply-template-workspace.md) | Owns validation and installation after Stage 1 confirms library or explicit workspace roots; skip for confirmed free design |
 
 ## Workflow
 
@@ -89,6 +69,11 @@ Default local conversion writes Markdown/profile outputs beside each source file
 Use `-o` only when a specific output file/directory is required; with multiple
 inputs or directory inputs, `-o` is an output directory. Backend converter details are documented in
 [`scripts/docs/conversion.md`](../scripts/docs/conversion.md).
+
+**Source-image orientation trigger**: Before Step 2, follow
+[`conversion.md`](../scripts/docs/conversion.md) § Image Orientation Review when
+the user requests correction, converted text asks for rotated viewing, or a
+downloaded asset is visibly sideways. Do not launch its legacy HTML tool.
 
 After reading direct and converted content, assess factual sufficiency:
 
@@ -125,6 +110,36 @@ After reading direct and converted content, assess factual sufficiency:
 ```bash
 python3 ${SKILL_DIR}/scripts/project_manager.py init <project_name> --format <format>
 ```
+
+Project initialization creates `<project_path>/validation/workflow.log` and
+records the initialization milestone. After the project exists, run each
+project-scoped Python tool normally. The shared CLI bootstrap automatically
+records its command envelope and a bounded set of material outcome lines in
+that log; no wrapper command is required. Full console output is not copied.
+Detached Confirm UI and live-preview processes retain their detailed output in
+their existing component logs.
+
+When a Python helper serves the active deck but neither its arguments nor its
+working directory identifies the project, provide the routing signal on that
+same command — still one Python process:
+
+```bash
+PPT_MASTER_PROJECT_PATH="<project_path>" python3 ${SKILL_DIR}/scripts/<helper>.py <args...>
+```
+
+When an important audit detail has no owning command output — for example a
+material stage handoff or rework reason, a user-approved exception, or a manual
+recovery choice — the active role may append one concise note:
+
+```bash
+python3 ${SKILL_DIR}/scripts/workflow_log.py <project_path> "<material audit detail>"
+```
+
+Notes are selective and non-authoritative. Do not duplicate artifact contents,
+routine page progress, or chain-of-thought; current artifacts and gate results
+still determine stage and readiness. The transcript is cold audit evidence:
+never read it during normal generation; open it only when the user explicitly
+asks to review the run.
 
 Format options must be named with concrete dimensions. Default: `ppt169` = `1280x720`, `viewBox="0 0 1280 720"`. Other examples: `ppt43` = `1024x768`, `story` = `1080x1920`, `banner` = `1920x1080`. For the full format list, see `references/canvas-formats.md`.
 
@@ -173,7 +188,7 @@ Never scan kind directories, infer unregistered entries, or resolve a bare name,
 brand mention, or style phrase to a path. Preserve every exact root supplied for
 this run. A registered-root equality match remains `library`; every other exact
 root remains `explicit`. Candidate provenance never changes later validation,
-fusion, or precedence.
+installation, or precedence.
 
 Resolve the confirmation surface under
 [`confirm_ui.md`](../scripts/docs/confirm_ui.md). In the UI branch, run
@@ -200,7 +215,7 @@ root. Never add Master/Layout/placeholder structure directly to an existing
 PPTX or SVG project.
 
 **✅ Checkpoint**: Candidate input is ready for the combined Stage-1
-confirmation. No template has been selected, read, validated, fused, or
+confirmation. No template has been selected, read, validated, or
 installed. Proceed to Step 4 without a user-visible stop.
 
 ---
@@ -308,8 +323,8 @@ or `templates` with at least one server-resolved root.
 
 1. For `templates`, load and run
    [`apply-template-workspace.md`](./stages/apply-template-workspace.md) against
-   every confirmed exact root. It validates/fuses them and installs one
-   project-local state under `templates/` plus any real `images/` and `icons/`.
+   every confirmed exact root. It validates them and installs each as its own
+   `templates/design_spec.<kind>.<id>.md` plus any real `images/` and `icons/`.
    For `free_design`, skip installation. Then bind the completed state:
 
    ```bash
@@ -518,13 +533,21 @@ Keep the core's shared visual-quality defaults and `svg-effects.md` §6.1 Visual
 | Deterministic trigger | Additional references |
 |---|---|
 | `pptx_structure.mode: structured` | `executor-structured.md` + `pptx-structure-interface.md` |
-| Any data chart/table, including mini or inset charts and sparklines | `executor-chart.md` |
-| Preset pattern or supported native chart/table | `native-data-interface.md` before drawing |
+| Selected §VII / `page_visualizations` Chart/Table `family/key`, or a legacy `page_charts` row resolving to a live Chart/Table SVG | `executor-visualization.md` + the selected Chart/Table branch |
+| Actual value-driven geometry, including mini/inset charts and sparklines | `executor-chart.md` |
+| Mandatory per-page Structure decision from §IX is `yes` | `executor-structure.md` before any geometry for the first applicable page |
+| Actual row × column fact grid | `executor-table.md` |
+| Used preset pattern fill, or independent Chart/Table with §IX `<object-key>=yes` | `native-data-interface.md` before that object |
 | `spec_lock.md images` / §VIII has an image/formula row, or the template has bundled images | `executor-image.md` + `image-layout-spec.md` + `image-layout-patterns.md` + `svg-image-embedding.md` |
 | At least one placed image has `Status: Sourced` | `executor-web-image.md` after the image branch |
 | All SVG pages and SVG quality gates are complete, and the effective Speaker Notes outcome in `design_spec.md §I` is enabled | `executor-notes.md` before generating speaker notes |
 
-No branch is loaded by analogy. Evaluate these triggers from `spec_lock.md`, §VII/§VIII, the selected style, and the current page plan.
+No branch is loaded by analogy. For each page, after §IX content/communication
+but before geometry, apply [`executor-base.md`](../references/executor-base.md)'s
+mandatory Structure decision. `no` stays on base; before the first `yes`, read
+`executor-structure.md` completely and reuse it until file/context invalidation.
+Create no catalog/lock/artifact. Chart/Table selection neither replaces this
+decision nor locks geometry/native readiness.
 
 **Design Parameter Confirmation (Mandatory)**: before the first SVG, output key design parameters from the spec (canvas dimensions, color scheme, font plan, body font size). See executor-base.md §2.
 
@@ -539,7 +562,12 @@ python3 ${SKILL_DIR}/scripts/svg_editor/server.py <project_path> --live --daemon
 - **Do NOT read or apply submitted annotations during generation.** Users may annotate at any time, but Executor proceeds without touching them. The window to apply annotations opens only after Step 7 completes — see [`workflows/stages/live-preview.md`](stages/live-preview.md).
 - The editor also supports **staged direct edits** (text content + SVG element attributes previewed immediately, then written to `svg_output/` only when the user clicks **Apply changes**; `Ctrl+Z` / Undo drops staged edits) alongside annotation; re-export stays chat-driven. Full scope and editor details: see [`workflows/stages/live-preview.md`](stages/live-preview.md) Notes.
 
-**Conditional reference reads**: Follow `executor-structured.md` for template Design Spec/prototypes and `executor-chart.md` for chart SVGs. Read each selected full reference once per valid context; reread only after a known change or context invalidation. Flat routes skip template reads. Summaries and sidecars never replace full SVGs.
+**Conditional reference reads**: `executor-structured.md` owns template specs
+and prototypes. `executor-visualization.md` resolves a selected canonical or
+legacy value; read only its returned SVG plus applicable family branches. Read
+each full reference once per valid context and reread only after change/context
+invalidation. Flat routes skip template reads; never substitute summaries,
+sidecars, or guessed family paths.
 
 > Image facts: trust the latest `analysis/image_analysis.csv` from the Step 4 inventory read or the Step 5 post-acquisition refresh. If `images/` changed since, re-run `python3 ${SKILL_DIR}/scripts/analyze_images.py <project_path>/images` before layout; if the folder is empty, use no image inventory and ignore a stale CSV.
 
@@ -571,7 +599,7 @@ group on both pages.
 
 `template_reuse_scope: mirror|layout` pages MUST start from the complete `page_layouts` SVG, keep inherited visible objects, and preserve root Master/Layout identity plus stable atoms/slots. Strict preserves that reusable contract; under `layout`, the once-loaded Design Spec's `Template Application` may still authorize carrier text/tspan reflow inside unchanged slot bounds. Adaptive uses the current or new Layout key/name already declared by Strategist. If construction proves that fixed atoms or slot topology/bounds must change, stop and return upstream for Strategist to repair the owning plan and lock, validate and read back the affected fragments, then resume; Executor never mutates `spec_lock.md`. `mirror` changes only visible text values while preserving text/tspan topology and attributes. `style` follows the flat paragraph below without structure metadata.
 
-`template_reuse_scope: style`, Style-only, free-design, and brand-only pages use `pptx_structure.mode: flat`. A Style-only workspace always derives `template_reuse_scope: style`; Style never supplies prototype mappings. When fused with Layout/Deck, Style changes only Direction / method and follows the selected non-Style structure plan. On a flat page, draw the complete page directly: keep backgrounds, repeated chrome, headings, text, images, and decoration as ordinary Slide-local SVG content. Do not plan `pptx_masters` / `pptx_layouts` / `page_pptx_layouts`, do not add root Master/Layout identity, and do not add `data-pptx-layer` or `data-pptx-placeholder` metadata. Group logical content normally with top-level `<g id>` elements. Export materializes one clean project-owned Master plus one Blank Layout, applies the locked theme colors/fonts/title-body defaults, removes stock content placeholders and unused built-in Layouts, and retains only the standard date/footer/slide-number capability hooks. It does not promote or deduplicate page content.
+`template_reuse_scope: style`, Style-only, free-design, and brand-only pages use `pptx_structure.mode: flat`. A Style-only workspace always derives `template_reuse_scope: style`; Style never supplies prototype mappings. When installed alongside Layout/Deck, Style changes only Direction / method and follows the selected non-Style structure plan. On a flat page, draw the complete page directly: keep backgrounds, repeated chrome, headings, text, images, and decoration as ordinary Slide-local SVG content. Do not plan `pptx_masters` / `pptx_layouts` / `page_pptx_layouts`, do not add root Master/Layout identity, and do not add `data-pptx-layer` or `data-pptx-placeholder` metadata. Group logical content normally with top-level `<g id>` elements. Export materializes one clean project-owned Master plus one Blank Layout, applies the locked theme colors/fonts/title-body defaults, removes stock content placeholders and unused built-in Layouts, and retains only the standard date/footer/slide-number capability hooks. It does not promote or deduplicate page content.
 
 Do not duplicate specialized identity with `data-pptx-role`. Add it only to structural page-frame objects whose package, page-number, or animation behavior is not already expressed by `data-pptx-layer`, `data-pptx-placeholder`, or `data-pptx-replace-with`; such an element needs a stable unique `id`. Do not add generic content roles to ordinary titles, body text, cards, KPIs, diagrams, charts, icons, or images. Full contract: [`references/semantic-svg.md`](../references/semantic-svg.md).
 
@@ -601,7 +629,7 @@ gate-signal: method=<rule resolved, or none> | page-local=<count> | not-exercise
 ```bash
 python3 ${SKILL_DIR}/scripts/svg_quality_checker.py <project_path> --stage final --json
 ```
-- **MUST**: Before this gate, every chart/table whose Design Spec §IX page block says `Native-ready: yes` already has its own draw-time marker plus JSON metadata. Rows marked `no` and incidental microvisuals remain ordinary SVG. For legacy specs only, a matching §VII value may supply the decision when §IX has no field.
+- **MUST**: Before this gate, every §IX `Native-ready` entry `<object-key>=yes` already has one matching draw-time marker group and JSON metadata child; `=no` and incidental microvisuals remain ordinary SVG. A legacy bare `yes|no` is readable only when that page has exactly one eligible object; it never derives from §VII.
 - Run the command unfiltered—do not pipe it through `tail`, `head`, `grep`, or another output truncator. One invocation already scans every page and reports the complete issue set.
 - On failure, review all `blocking` errors and all advisory warnings from that run before editing. Choose which warnings merit work, fix every blocking error and the selected warnings in one consolidated edit pass, then perform one verification rerun. If it still fails, its complete output begins the next batch cycle; never run the checker between individual fixes or use repeated invocations to discover one next issue at a time. If terminal output is truncated, extract only `categories.blocking.issues` and, when needed, `categories.introduced.issues` from the report written by that same run.
 - Every `warning` is advisory and non-blocking: do not return the page for mandatory modification, do not auto-normalize user-authored compatible syntax, and do not require an acknowledgement/disposition line. Recommendation warnings identify the generated-SVG default; fidelity/quality warnings may be reported when material, but the existing input may ship unchanged. If a condition must be corrected before release, the checker must classify it as an `error`, not a `warning`.

@@ -1,8 +1,8 @@
 # Skills manifest
 
-Synced from upstream release: `v4.5.0`
+Synced from upstream release: `v4.7.0`
 
-Upstream commit: `ec824aecd551a0bc2990b617a131d907a5d808ea`
+Upstream commit: `e8323bfaee249cffe1301ec40fca5875eb544d46`
 
 Detected skill directories:
 

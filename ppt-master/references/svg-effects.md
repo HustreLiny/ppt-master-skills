@@ -57,7 +57,7 @@ different jobs.
 | Picture/card/overlay elevation or boundary is unclear | Object or picture/carrier shadow, restrained glow, or hairline | §6.4; equal peers stay flat; one light direction |
 | Native copy and image do not integrate | Scrim, fade, wash, vignette, off-center spotlight, or faux glass | §6.5 and the Image-Treatment Implementation Map; verify contrast; no backdrop blur |
 | Relationship state, direction, continuity, or boundary is unclear | Draft/optional/future → dash; direction → marker; undirected → solid; continuous flow → gradient stroke; repeated boundary → frame/contour/crop edge; exact grid → multi-subpath | §6.6 / §6.3; every line needs a job |
-| Short display text needs notation or silhouette | Removed/former → strike; eyebrow distinction → tracking; display silhouette → outline/gradient; luminous metric → glow; semantic list → native bullet | §6.7 / §6.4; no decorative body-copy treatment |
+| Short display text needs notation, silhouette, or material/image emphasis | Removed/former → strike; eyebrow distinction → tracking; display silhouette → outline/gradient; justified material/image emphasis → native picture/texture fill; luminous metric → glow; semantic list → native bullet | §6.7 / §6.3 / §6.4; no decorative body-copy treatment |
 | Tilt, repetition, or reversible asset direction helps composition | Rotate, translate/mirror, or local `<use>` | §6.8; never mirror text, logos, or directional evidence |
 | Resolved style needs hand, print, pixel, facets, layers, ribbon, or line-plus-area | Matching constructed recipe | §6.11; no generic decorative freeform |
 | Meaning needs an unmatched silhouette, radial hierarchy, gauge, or custom route | Freeform, explicit arc/sector, or calculated arrowhead | §6.9 / §6.10; prefer an equal stock shape/marker |
@@ -210,6 +210,40 @@ has both dimensions. Checker and exporter reject the degenerate stroke form.
 </defs>
 <path d="M100 200 C260 80 420 320 620 180" fill="none"
       stroke="url(#flow)" stroke-width="12"/>
+```
+
+**Native text picture/texture fill**:
+
+| Concern | Contract |
+|---|---|
+| Target | Direct `fill="url(#id)"` on `<text>` or a non-positional `<tspan>`; the text remains editable |
+| Definition | Direct `<pattern>` child of `<defs>` with unique `id` and exact `data-pptx-text-image-fill="stretch"` or `"tile"` |
+| Image | Exactly one direct SVG-namespace `<image>` child; project-local or data-URI source; explicit positive `width` / `height` |
+| Native result | `stretch` → run-level `a:blipFill/a:stretch`; `tile` → run-level `a:blipFill/a:tile` |
+| Alpha | Text `fill-opacity` multiplies the native picture-fill alpha |
+| Forbidden | Preset-pattern attributes; `patternTransform`; additional pattern children; image style/alpha/clip/filter/mask/transform; use outside text; unannotated custom image patterns; multi-image/layer knockout composites |
+
+Use this registered pattern when the design calls for a photograph, material,
+or texture inside editable glyphs. The pattern is an authoring carrier for a
+PowerPoint run picture fill, not a general SVG pattern promise. PowerPoint owns
+the final run bounding box: `stretch` is `Native-normalized`, while `tile` may
+normalize tile scale or phase and needs visual review. Forward SVG→PPTX export
+is native; PPTX→SVG does not reconstruct run-level picture fills yet.
+
+```xml
+<defs>
+  <pattern id="titleTexture" data-pptx-text-image-fill="stretch"
+           patternUnits="objectBoundingBox"
+           patternContentUnits="objectBoundingBox" width="1" height="1">
+    <image href="../images/cloud-texture.png"
+           x="0" y="0" width="1" height="1"
+           preserveAspectRatio="none"/>
+  </pattern>
+</defs>
+<text x="96" y="220" fill="url(#titleTexture)" fill-opacity="0.85"
+      font-family="Microsoft YaHei" font-size="72" font-weight="700">
+  国风之美
+</text>
 ```
 
 Preset patterns are a separate PPT interface in [`native-data-interface.md`](./native-data-interface.md).
@@ -634,6 +668,18 @@ least two.
 **Validation**: Checker and native export consume the same parser in
 [`paths.py`](../scripts/svg_to_pptx/drawingml/paths.py); native-object fallback
 bounds reuse its normalized commands rather than a second path grammar.
+
+**Reference — not a constraint**: use the fewest curve segments and control
+points that preserve the intended silhouette. Set endpoints and tangent
+directions first; use `S` after `C` or `T` after `Q` when reflected controls
+preserve deliberate tangent continuity.
+
+```xml
+<path d="M80 300 C180 180 300 180 400 300 S620 420 720 300"
+      fill="none" stroke="#2563EB" stroke-width="4" stroke-linecap="round"/>
+<path d="M80 520 Q240 400 400 520 T720 520"
+      fill="none" stroke="#0F766E" stroke-width="4" stroke-linecap="round"/>
+```
 
 Command identity, relative coordinates, shorthand, arc parameters, and original
 handles are not retained. Geometry needs non-zero bounds. Before authoring a

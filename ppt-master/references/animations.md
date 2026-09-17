@@ -18,7 +18,7 @@ Motion is several separate capabilities, not one dial; two of them are decided w
 | A transition or object animation needs an audible cue | Optional `transition.sound` or object `sound`, selected only after the visual solution is complete and synced from the global library; a narrated MP4 uses either the verified native-export mix or explicit slideshow capture, never both | Post-motion; §2.2 |
 | Nothing should move | `-t none` and per-element `none` | Export; §1 |
 
-**Hard rule — Morph geometry is an authoring decision; pairing is a later execution decision**: export cannot invent endpoint states. Author both consecutive pages while `svg_output/` is being built. For deterministic identity expose each endpoint as a compatible direct-root group and declare the pair in `animations.json` (§2.1); ids and geometry may differ. `-t morph` without pairs leaves matching to PowerPoint's heuristic.
+**Hard rule — Morph geometry is an authoring decision; pairing is a later execution decision**: export cannot invent endpoint states. Author both consecutive pages during the selected route's page authoring. For deterministic identity expose each endpoint as a compatible direct-root group and declare the pair in `animations.json` (§2.1); ids and geometry may differ. `-t morph` without pairs leaves matching to PowerPoint's heuristic.
 
 **Reference — not a constraint**: per-element animation stays off by default; auto-firing builds on every page are an unsolicited "AI deck" tell, and each capability earns its place per page.
 
@@ -107,7 +107,7 @@ When one semantic object continues across adjacent slides, the destination slide
 |---|---|
 | Owner | `morph` belongs to the destination; `morph.from` is the immediately preceding stem in export order |
 | Source of pairs | `scaffold` never guesses identity — add pairs from the motion plan after inspecting final direct-root ids |
-| Pair key | A stable identity whose `from`/`to` are unique direct-root `<g>` ids on the two slides, written without `!!` (export writes the Selection Pane name `!!<key>` on both); a root primitive with a static role marker is not pairable, and neither is a `Native-ready=yes` chart or table — `--native-charts-and-tables` turns it into a graphicFrame and the pair fails at export |
+| Pair key | A stable identity whose `from`/`to` are unique direct-root `<g>` ids on the two slides, written without `!!` (export writes the Selection Pane name `!!<key>` on both); a root primitive with a static role marker is not pairable, neither is a `Native-ready=yes` chart or table — `--native-charts-and-tables` turns it into a graphicFrame and the pair fails at export — nor a `data-pptx-placeholder` slot on a structured page, which export rewrites into a layout placeholder; pair a Slide-local group there |
 | Destination effect | A destination with pairs sets `effect: morph` explicitly (`morph_by` omitted or `object`; `word`/`character` rejected; a CLI override that changes the effect fails) |
 | Chains | A middle slide may continue an object into another Morph under the same key |
 | Uniqueness | One key never names two objects on a slide; one object never carries two keys; every `!!` key shared by adjacent Morph pages must be declared |

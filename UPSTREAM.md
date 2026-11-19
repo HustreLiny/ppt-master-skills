@@ -6,15 +6,15 @@ This repository mirrors the `skills/` directory from:
 
 Latest synced upstream release:
 
-`v6.9.0`
+`v6.10.0`
 
 Upstream commit:
 
-`ce92fb43e4ade9c701f4c869e286f13fce743c72`
+`d8f704bc8c1552d53a8769b55d1eecd22c782042`
 
 Upstream release:
 
-https://github.com/hugohe3/ppt-master/releases/tag/v6.9.0
+https://github.com/hugohe3/ppt-master/releases/tag/v6.10.0
 
 Source path:
 
